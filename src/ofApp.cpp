@@ -3,17 +3,26 @@
 ofVideoGrabber vidGrabber;
 ofImage img;
 int camWidth, camHeight;
-
+unsigned char *late_imgs;
+unsigned char *crr_pixels;
+unsigned char *tmp_pixels;
+int late_img_size, img_id, set_size, play_img_id;
 //--------------------------------------------------------------
 void ofApp::setup(){
     ofBackground(0,0,0);
     ofEnableSmoothing();
-    ofSetFrameRate(20);
-    //キャプチャする画像のサイズを指定
+    ofSetFrameRate(30);
     camWidth = 1920;
     camHeight = 1080;
     vidGrabber.setVerbose(true);
     vidGrabber.initGrabber(camWidth, camHeight);
+    set_size = 5;
+    late_imgs = (unsigned char*)malloc(3 * vidGrabber.height * vidGrabber.width * set_size);
+    crr_pixels = vidGrabber.getPixels();
+    tmp_pixels = vidGrabber.getPixels();
+    late_img_size = 3 * vidGrabber.height * vidGrabber.width;
+    img_id = 0;
+    play_img_id = 0;
 }
 
 //--------------------------------------------------------------
@@ -23,26 +32,42 @@ void ofApp::update(){
 
 //--------------------------------------------------------------
 void ofApp::draw(){
-    ofSetColor(0xFFFFFF);
-    vidGrabber.draw(20,20);
-    
-    unsigned char *pixels = vidGrabber.getPixels();
-    //色反転処理
-    for(int i = 0; i < camHeight; i++){
-        for(int j = 0; j < camWidth; j++){
-            pixels[i*camWidth*3 + j*3] = 255-pixels[i*camWidth*3 + j*3];
-            pixels[i*camWidth*3 + j*3+1] = 255-pixels[i*camWidth*3 + j*3+1];
-            pixels[i*camWidth*3 + j*3+2] = 255-pixels[i*camWidth*3 + j*3+2];
+    for(int h = 0; h < camHeight; h++) {
+        for(int w = 0; w < camWidth; w++) {
+            for (int c = 0; c < 3; c++) {
+                tmp_pixels[h * camWidth * 3 + w * 3 + c] = crr_pixels[h * camWidth * 3 + w * 3 + c];
+            }
         }
     }
-    //処理後の画像の描画
-    img.setFromPixels(pixels, camWidth, camHeight, OF_IMAGE_COLOR);
-    img.draw(20, 240);
+    play_img_id = (++play_img_id) % set_size;
+    
+    if (img_id > play_img_id) {
+        for(int h = 0; h < camHeight; h++) {
+            for(int w = 0; w < camWidth; w++) {
+                for (int c = 0; c < 3; c++) {
+                    crr_pixels[h * camWidth * 3 + w * 3 + c] = (crr_pixels[h * camWidth * 3 + w * 3 + c] + late_imgs[ late_img_size * play_img_id + h * camWidth * 3 + w * 3 + c] ) / 2;
+                }
+            }
+        }
+    }
+    
+    img.setFromPixels(tmp_pixels, camWidth, camHeight, OF_IMAGE_COLOR);
+    img.draw(0, 0);
 }
 
 //--------------------------------------------------------------
-void ofApp::keyPressed(int key){
-
+void ofApp::keyPressed(int key) {
+    if (img_id > set_size) {
+        return;
+    }
+    for(int h = 0; h < camHeight; h++) {
+        for(int w = 0; w < camWidth; w++) {
+            for (int c = 0; c < 3; c++) {
+                late_imgs[ late_img_size * img_id + h * camWidth * 3 + w * 3 + c] = tmp_pixels[h * camWidth * 3 + w * 3 + c];
+            }
+        }
+    }
+    img_id++;
 }
 
 //--------------------------------------------------------------
