@@ -6,6 +6,7 @@ int camWidth, camHeight;
 unsigned char *late_imgs;
 unsigned char *crr_pixels;
 unsigned char *tmp_pixels;
+unsigned char *background;
 int late_img_size, img_id, set_size, play_img_id;
 //--------------------------------------------------------------
 void ofApp::setup(){
@@ -18,11 +19,18 @@ void ofApp::setup(){
     vidGrabber.initGrabber(camWidth, camHeight);
     set_size = 5;
     late_imgs = (unsigned char*)malloc(3 * vidGrabber.height * vidGrabber.width * set_size);
+    background = (unsigned char*)malloc(3 * vidGrabber.height * vidGrabber.width);
     crr_pixels = vidGrabber.getPixels();
     tmp_pixels = vidGrabber.getPixels();
     late_img_size = 3 * vidGrabber.height * vidGrabber.width;
     img_id = 0;
     play_img_id = 0;
+    bitset<8> bs2( (int) 100 );
+    bitset<8> bs1( (int) 010 );
+    bitset<8> b = bs2 xor bs1;
+    for(int i = 0; i < 8; i++) {
+        std::cout << b[i];
+    }
 }
 
 //--------------------------------------------------------------
@@ -51,7 +59,7 @@ void ofApp::draw(){
         }
     }
     
-    img.setFromPixels(tmp_pixels, camWidth, camHeight, OF_IMAGE_COLOR);
+    img.setFromPixels(crr_pixels, camWidth, camHeight, OF_IMAGE_COLOR);
     img.draw(0, 0);
 }
 
@@ -87,7 +95,13 @@ void ofApp::mouseDragged(int x, int y, int button){
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
-
+    for(int h = 0; h < camHeight; h++) {
+        for(int w = 0; w < camWidth; w++) {
+            for (int c = 0; c < 3; c++) {
+                background[ late_img_size * img_id + h * camWidth * 3 + w * 3 + c] = tmp_pixels[h * camWidth * 3 + w * 3 + c];
+            }
+        }
+    }
 }
 
 //--------------------------------------------------------------
