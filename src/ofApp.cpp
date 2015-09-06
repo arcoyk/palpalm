@@ -32,22 +32,14 @@ void ofApp::update(){
 
 //--------------------------------------------------------------
 void ofApp::draw(){
-    for(int h = 0; h < camHeight; h++) {
-        for(int w = 0; w < camWidth; w++) {
-            for (int c = 0; c < 3; c++) {
-                tmp_pixels[h * camWidth * 3 + w * 3 + c] = crr_pixels[h * camWidth * 3 + w * 3 + c];
-            }
-        }
+    for(int i = 0; i < late_img_size; i ++) {
+        tmp_pixels[i] = crr_pixels[i];
     }
     play_img_id = (++play_img_id) % set_size;
     
     if (img_id > play_img_id) {
-        for(int h = 0; h < camHeight; h++) {
-            for(int w = 0; w < camWidth; w++) {
-                for (int c = 0; c < 3; c++) {
-                    crr_pixels[h * camWidth * 3 + w * 3 + c] = (crr_pixels[h * camWidth * 3 + w * 3 + c] + late_imgs[ late_img_size * play_img_id + h * camWidth * 3 + w * 3 + c] ) / 2;
-                }
-            }
+        for(int i = 0; i < late_img_size; i ++) {
+            tmp_pixels[i] = crr_pixels[i];
         }
     }
     
@@ -60,12 +52,8 @@ void ofApp::keyPressed(int key) {
     if (img_id > set_size) {
         return;
     }
-    for(int h = 0; h < camHeight; h++) {
-        for(int w = 0; w < camWidth; w++) {
-            for (int c = 0; c < 3; c++) {
-                late_imgs[ late_img_size * img_id + h * camWidth * 3 + w * 3 + c] = tmp_pixels[h * camWidth * 3 + w * 3 + c];
-            }
-        }
+    for(int i = 0; i < late_img_size; i ++) {
+        late_imgs[late_img_size * img_id + i] = tmp_pixels[late_img_size * img_id + i];
     }
     img_id++;
 }
