@@ -7,6 +7,7 @@ unsigned char *late_imgs;
 unsigned char *crr_pixels;
 unsigned char *tmp_pixels;
 unsigned char *back_pixels;
+unsigned char *skin_color;
 int late_img_size, img_id, set_size, play_img_id;
 //--------------------------------------------------------------
 void ofApp::setup(){
@@ -23,6 +24,10 @@ void ofApp::setup(){
     tmp_pixels = vidGrabber.getPixels();
     late_img_size = 3 * vidGrabber.height * vidGrabber.width;
     back_pixels = (unsigned char*)malloc(3 * vidGrabber.height * vidGrabber.width);
+    skin_color = (unsigned char*)malloc(3);
+    skin_color[0] = 122;
+    skin_color[1] = 89;
+    skin_color[2] = 82;
     img_id = 0;
     play_img_id = 0;
 }
@@ -44,17 +49,17 @@ void ofApp::draw(){
 //        }
 //    }
     int diff;
-    int diff_thre = 20;
-    for (int i = 0; i < late_img_size; i+=3) {
+    int diff_thre = 50;
+    for (int i = 0; i < late_img_size; i += 3) {
         diff = 0;
         for(int c = 0; c < 3; c++) {
-            diff += abs(tmp_pixels[i + c] - back_pixels[i + c]);
+            diff += abs(tmp_pixels[i + c] - skin_color[c]);
         }
         for(int c = 0; c < 3; c++) {
             if (diff < diff_thre) {
-                crr_pixels[i + c] = 0;
-            } else {
                 crr_pixels[i + c] = tmp_pixels[i + c];
+            } else {
+                crr_pixels[i + c] = 0;
             }
         }
     }
@@ -72,7 +77,7 @@ void ofApp::keyPressed(int key) {
     for(int i = 0; i < late_img_size; i += 3) {
         diff = 0;
         for(int c = 0; c < 3; c++) {
-            diff += tmp_pixels[i + c] - back_pixels[i + c];
+            diff += abs(tmp_pixels[i + c] - skin_color[c]);
         }
         for(int c = 0; c < 3; c++) {
             if (diff < diff_thre) {
@@ -101,11 +106,13 @@ void ofApp::mouseDragged(int x, int y, int button){
 }
 
 //--------------------------------------------------------------
-void ofApp::mousePressed(int x, int y, int button){
-    for(int i = 0; i < late_img_size; i ++) {
-        back_pixels[i] = tmp_pixels[i];
+void ofApp::mousePressed(int mouse_x, int mouse_y, int button){
+    std::cout << "\n";
+    for (int c = 0; c < 3; c++) {
+        skin_color[c] = (skin_color[c] + tmp_pixels[(mouse_y - 1) * camWidth * 3 + mouse_x * 3 + c]) / 2;
+        std::cout << (int)skin_color[c];
+        std::cout << "\n";
     }
-    std::cout << "back";
 }
 
 //--------------------------------------------------------------
